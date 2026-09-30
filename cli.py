@@ -53,6 +53,10 @@ def main():
     api_key = os.getenv("BINANCE_API_KEY")
     api_secret = os.getenv("BINANCE_API_SECRET")
 
+    if not api_key or not api_secret:
+        print("❌ Configuration error: BINANCE_API_KEY and BINANCE_API_SECRET are required")
+        sys.exit(1)
+
     parser = build_parser()
     args = parser.parse_args()
 

@@ -46,12 +46,24 @@ class FuturesTestnetClient:
         self.logger = logging.getLogger("trading_bot.client")
         self.session = requests.Session()
         self.session.headers.update({"X-MBX-APIKEY": self.api_key})
+        self.time_offset = 0
+        try:
+            self._sync_time()
+        except Exception:
+            pass  # fall back to local clock
 
     # ---------- internals ----------
 
+    def _sync_time(self):
+        """Align local clock with Binance server time."""
+        r = self.session.get(f"{self.base_url}/fapi/v1/time", timeout=self.timeout)
+        server_ms = r.json()["serverTime"]
+        self.time_offset = server_ms - int(time.time() * 1000)
+        self.logger.info("Synced server time, offset=%sms", self.time_offset)
+
     def _sign(self, params: dict) -> dict:
         params = dict(params)
-        params["timestamp"] = int(time.time() * 1000)
+        params["timestamp"] = int(time.time() * 1000) + self.time_offset
         params["recvWindow"] = params.get("recvWindow", 5000)
         query_string = urlencode(params, doseq=True)
         signature = hmac.new(self.api_secret, query_string.encode(), hashlib.sha256).hexdigest()
