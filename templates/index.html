@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Testnet Order Desk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="kicker">BINANCE FUTURES / TESTNET</p>
+        <h1>Order desk</h1>
+        <p class="subtitle">A focused control panel for testnet execution.</p>
+      </div>
+      <form action="{{ url_for('connection') }}" method="post">
+        <button class="button button-secondary" type="submit">Check connection</button>
+      </form>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="alerts" aria-live="polite">
+          {% for category, message in messages %}
+            <p class="alert {{ category }}">{{ message }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section class="workspace">
+      <div class="intro">
+        <span class="status-dot {{ 'is-live' if dashboard.account else 'is-offline' }}"></span>
+        <span>{{ 'Connected to testnet' if dashboard.account else 'Waiting for connection' }}</span>
+        <p>Orders are sent to Binance Futures Testnet using the keys in your local environment.</p>
+      </div>
+
+      {% if dashboard.error %}
+        <section class="connection-state">
+          <div>
+            <p class="kicker">ACCOUNT UNAVAILABLE</p>
+            <h2>Connect your testnet account</h2>
+            <p>{{ dashboard.error }}</p>
+          </div>
+          <form action="{{ url_for('connection') }}" method="post">
+            <button class="button button-secondary" type="submit">Retry connection</button>
+          </form>
+        </section>
+      {% endif %}
+
+      {% if dashboard.account %}
+        <section class="metrics" aria-label="Account overview">
+          <div class="metric"><span>Wallet balance</span><strong>{{ '%.2f'|format(dashboard.account.get('totalWalletBalance', 0)|float) }} <small>USDT</small></strong></div>
+          <div class="metric"><span>Available balance</span><strong>{{ '%.2f'|format(dashboard.account.get('availableBalance', 0)|float) }} <small>USDT</small></strong></div>
+          <div class="metric"><span>Unrealized PnL</span><strong class="{{ 'positive' if dashboard.account.get('totalUnrealizedProfit', 0)|float >= 0 else 'negative' }}">{{ '%.2f'|format(dashboard.account.get('totalUnrealizedProfit', 0)|float) }} <small>USDT</small></strong></div>
+        </section>
+
+        <section class="activity-grid">
+          <div class="data-panel">
+            <div class="panel-heading"><div><p class="kicker">EXPOSURE</p><h2>Open positions</h2></div><span class="count">{{ dashboard.positions|length }}</span></div>
+            {% if dashboard.positions %}
+              <div class="table-wrap"><table><thead><tr><th>Symbol</th><th>Size</th><th>Entry</th><th>PnL</th></tr></thead><tbody>
+                {% for position in dashboard.positions %}<tr><td>{{ position.get('symbol') }}</td><td>{{ position.get('positionAmt') }}</td><td>{{ position.get('entryPrice') }}</td><td class="{{ 'positive' if position.get('unRealizedProfit', 0)|float >= 0 else 'negative' }}">{{ position.get('unRealizedProfit') }}</td></tr>{% endfor %}
+              </tbody></table></div>
+            {% else %}<p class="empty-state">No open positions.</p>{% endif %}
+          </div>
+          <div class="data-panel">
+            <div class="panel-heading"><div><p class="kicker">ORDERS</p><h2>Open orders</h2></div><span class="count">{{ dashboard.open_orders|length }}</span></div>
+            {% if dashboard.open_orders %}
+              <div class="table-wrap"><table><thead><tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th></tr></thead><tbody>
+                {% for order in dashboard.open_orders %}<tr><td>{{ order.get('symbol') }}</td><td class="{{ 'buy' if order.get('side') == 'BUY' else 'sell' }}">{{ order.get('side') }}</td><td>{{ order.get('type') }}</td><td>{{ order.get('origQty') }}</td></tr>{% endfor %}
+              </tbody></table></div>
+            {% else %}<p class="empty-state">No open orders.</p>{% endif %}
+          </div>
+        </section>
+      {% endif %}
+
+      <form class="order-form" action="{{ url_for('orders') }}" method="post">
+        <div class="form-heading">
+          <div>
+            <p class="kicker">NEW ORDER</p>
+            <h2>Place an order</h2>
+          </div>
+          <span class="badge">USDT-M</span>
+        </div>
+
+        <div class="field-grid">
+          <label>Symbol
+            <input name="symbol" value="BTCUSDT" required pattern="[A-Za-z0-9]{5,20}">
+          </label>
+          <label>Side
+            <select name="side" required>
+              <option value="BUY">Buy</option>
+              <option value="SELL">Sell</option>
+            </select>
+          </label>
+          <label>Order type
+            <select name="order_type" id="order_type" required>
+              <option value="MARKET">Market</option>
+              <option value="LIMIT">Limit</option>
+              <option value="STOP_LIMIT">Stop-Limit</option>
+            </select>
+          </label>
+          <label>Quantity
+            <input name="quantity" type="number" min="0" step="any" placeholder="0.01" required>
+          </label>
+          <label id="price-field">Limit price
+            <input name="price" id="price" type="number" min="0" step="any" placeholder="60000">
+          </label>
+          <label class="hidden" id="stop-price-field">Stop price
+            <input name="stop_price" id="stop_price" type="number" min="0" step="any" placeholder="60800">
+          </label>
+        </div>
+
+        <div class="form-footer">
+          <p>Review symbol filters and quantity before submitting.</p>
+          <button class="button button-primary" type="submit">Place order <span aria-hidden="true">↗</span></button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script>
+    const typeSelect = document.getElementById('order_type');
+    const priceField = document.getElementById('price-field');
+    const stopPriceField = document.getElementById('stop-price-field');
+    const priceInput = document.getElementById('price');
+    const stopPriceInput = document.getElementById('stop_price');
+
+    function updatePriceFields() {
+      const isMarket = typeSelect.value === 'MARKET';
+      const isStop = typeSelect.value === 'STOP_LIMIT';
+      priceField.classList.toggle('hidden', isMarket);
+      stopPriceField.classList.toggle('hidden', !isStop);
+      priceInput.required = !isMarket;
+      stopPriceInput.required = isStop;
+    }
+
+    typeSelect.addEventListener('change', updatePriceFields);
+    updatePriceFields();
+  </script>
+</body>
+</html>

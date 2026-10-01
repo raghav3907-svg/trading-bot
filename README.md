@@ -60,6 +60,17 @@ trading_bot/
 
 ## How to Run
 
+### Web interface
+
+Start the local website from the project folder:
+
+```bash
+python app.py
+```
+
+Then open http://127.0.0.1:5000 in your browser. The web interface uses the
+same local `.env` credentials and Binance Futures Testnet as the CLI.
+
 **Check your connection/API keys first:**
 
 ```bash

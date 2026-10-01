@@ -13,6 +13,7 @@ import hashlib
 import hmac
 import logging
 import time
+from typing import cast
 from urllib.parse import urlencode
 
 import requests
@@ -103,6 +104,16 @@ class FuturesTestnetClient:
     def get_account(self) -> dict:
         """Fetch account info (signed) — useful to verify API keys work."""
         return self._request("GET", "/fapi/v2/account", {})
+
+    def get_open_orders(self, symbol: str | None = None) -> list:
+        """Fetch currently open orders, optionally filtered by symbol."""
+        params = {"symbol": symbol} if symbol else {}
+        return cast(list, self._request("GET", "/fapi/v1/openOrders", params))
+
+    def get_position_risk(self, symbol: str | None = None) -> list:
+        """Fetch position risk data, optionally filtered by symbol."""
+        params = {"symbol": symbol} if symbol else {}
+        return cast(list, self._request("GET", "/fapi/v2/positionRisk", params))
 
     def place_market_order(self, symbol: str, side: str, quantity: float) -> dict:
         params = {
