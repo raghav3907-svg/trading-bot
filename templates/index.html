@@ -13,10 +13,14 @@
         <p class="kicker">BINANCE FUTURES / TESTNET</p>
         <h1>Order desk</h1>
         <p class="subtitle">A focused control panel for testnet execution.</p>
+        <p class="last-updated" aria-live="polite">Updated just now</p>
       </div>
-      <form action="{{ url_for('connection') }}" method="post">
-        <button class="button button-secondary" type="submit">Check connection</button>
-      </form>
+      <div class="topbar-actions">
+        <button class="button button-quiet" id="refresh-page" type="button" title="Refresh dashboard">Refresh <span aria-hidden="true">↻</span></button>
+        <form action="{{ url_for('connection') }}" method="post">
+          <button class="button button-secondary" type="submit">Check connection</button>
+        </form>
+      </div>
     </header>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -115,17 +119,37 @@
 
         <div class="form-footer">
           <p>Review symbol filters and quantity before submitting.</p>
-          <button class="button button-primary" type="submit">Place order <span aria-hidden="true">↗</span></button>
+          <button class="button button-primary" id="review-order" type="button">Review order <span aria-hidden="true">↗</span></button>
         </div>
       </form>
     </section>
   </main>
+  <dialog class="order-dialog" id="order-dialog">
+    <div class="dialog-heading"><div><p class="kicker">ORDER REVIEW</p><h2>Ready to send?</h2></div><button class="dialog-close" id="close-dialog" type="button" aria-label="Close order review">×</button></div>
+    <p class="dialog-copy">Confirm these details before sending the order to Binance Futures Testnet.</p>
+    <dl class="order-summary">
+      <div><dt>Symbol</dt><dd id="summary-symbol">BTCUSDT</dd></div>
+      <div><dt>Side</dt><dd id="summary-side">BUY</dd></div>
+      <div><dt>Type</dt><dd id="summary-type">MARKET</dd></div>
+      <div><dt>Quantity</dt><dd id="summary-quantity">-</dd></div>
+      <div id="summary-price-row"><dt>Price</dt><dd id="summary-price">-</dd></div>
+      <div id="summary-stop-row" class="hidden"><dt>Stop price</dt><dd id="summary-stop">-</dd></div>
+    </dl>
+    <div class="dialog-actions"><button class="button button-secondary" id="cancel-dialog" type="button">Cancel</button><button class="button button-primary" id="confirm-order" type="button">Confirm and place</button></div>
+  </dialog>
   <script>
     const typeSelect = document.getElementById('order_type');
     const priceField = document.getElementById('price-field');
     const stopPriceField = document.getElementById('stop-price-field');
     const priceInput = document.getElementById('price');
     const stopPriceInput = document.getElementById('stop_price');
+    const orderForm = document.querySelector('.order-form');
+    const dialog = document.getElementById('order-dialog');
+    const lastUpdated = document.querySelector('.last-updated');
+
+    function value(name, fallback = '-') {
+      return orderForm.elements[name].value.trim() || fallback;
+    }
 
     function updatePriceFields() {
       const isMarket = typeSelect.value === 'MARKET';
@@ -136,8 +160,34 @@
       stopPriceInput.required = isStop;
     }
 
+    function updateSummary() {
+      document.getElementById('summary-symbol').textContent = value('symbol');
+      document.getElementById('summary-side').textContent = value('side');
+      document.getElementById('summary-type').textContent = value('order_type');
+      document.getElementById('summary-quantity').textContent = value('quantity');
+      document.getElementById('summary-price').textContent = value('price');
+      document.getElementById('summary-stop').textContent = value('stop_price');
+      document.getElementById('summary-price-row').classList.toggle('hidden', typeSelect.value === 'MARKET');
+      document.getElementById('summary-stop-row').classList.toggle('hidden', typeSelect.value !== 'STOP_LIMIT');
+    }
+
     typeSelect.addEventListener('change', updatePriceFields);
+    orderForm.querySelectorAll('input, select').forEach((field) => field.addEventListener('input', updateSummary));
+    document.getElementById('review-order').addEventListener('click', () => {
+      if (!orderForm.reportValidity()) return;
+      updateSummary();
+      dialog.showModal();
+    });
+    document.getElementById('close-dialog').addEventListener('click', () => dialog.close());
+    document.getElementById('cancel-dialog').addEventListener('click', () => dialog.close());
+    document.getElementById('confirm-order').addEventListener('click', () => orderForm.submit());
+    document.getElementById('refresh-page').addEventListener('click', (event) => {
+      event.currentTarget.classList.add('is-loading');
+      window.location.reload();
+    });
+    lastUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     updatePriceFields();
+    updateSummary();
   </script>
 </body>
 </html>
