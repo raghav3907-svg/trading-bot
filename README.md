@@ -1,5 +1,7 @@
 # Trading Bot — Binance Futures Testnet (USDT-M)
 
+# Trading Bot Dashboard
+
 A simplified CLI trading bot that places Market, Limit, and Stop-Limit
 orders on Binance Futures Testnet, with structured code, input
 validation, and logging.
