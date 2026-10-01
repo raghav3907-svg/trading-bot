@@ -18,9 +18,19 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "local-development-key")
 
 
+def safe_error_message(exc: Exception) -> str:
+    """Keep credentials out of errors displayed in the browser."""
+    message = str(exc)
+    for name in ("BINANCE_API_KEY", "BINANCE_API_SECRET"):
+        value = os.getenv(name, "")
+        if value:
+            message = message.replace(value, "[redacted]")
+    return message
+
+
 def get_client() -> FuturesTestnetClient:
-    api_key = os.getenv("BINANCE_API_KEY")
-    api_secret = os.getenv("BINANCE_API_SECRET")
+    api_key = os.getenv("BINANCE_API_KEY", "").strip()
+    api_secret = os.getenv("BINANCE_API_SECRET", "").strip()
     if not api_key or not api_secret:
         raise ValueError("BINANCE_API_KEY and BINANCE_API_SECRET are required in .env")
     return FuturesTestnetClient(api_key, api_secret)
@@ -38,7 +48,7 @@ def index():
             if float(position.get("positionAmt", 0)) != 0
         ]
     except (ValueError, BinanceAPIError, BinanceNetworkError) as exc:
-        dashboard["error"] = str(exc)
+        dashboard["error"] = safe_error_message(exc)
     return render_template("index.html", dashboard=dashboard)
 
 
@@ -50,7 +60,7 @@ def connection():
         account = client.get_account()
         flash(f"Connected to Binance Futures Testnet. Can trade: {account.get('canTrade')}", "success")
     except (ValueError, BinanceAPIError, BinanceNetworkError) as exc:
-        flash(f"Connection failed: {exc}", "error")
+        flash(f"Connection failed: {safe_error_message(exc)}", "error")
     return redirect(url_for("index"))
 
 
@@ -73,7 +83,7 @@ def orders():
             "success",
         )
     except (ValueError, ValidationError, BinanceAPIError, BinanceNetworkError) as exc:
-        flash(f"Order failed: {exc}", "error")
+        flash(f"Order failed: {safe_error_message(exc)}", "error")
     return redirect(url_for("index"))
 
 
