@@ -85,6 +85,12 @@ BINANCE_API_SECRET
 FLASK_SECRET_KEY
 ```
 
+### Deploy on Vercel
+
+This repository also includes a Vercel Python entry point. Import the GitHub
+repository into Vercel, then add `BINANCE_API_KEY`, `BINANCE_API_SECRET`, and
+`FLASK_SECRET_KEY` under Project Settings -> Environment Variables.
+
 **Check your connection/API keys first:**
 
 ```bash
