@@ -11,7 +11,7 @@ import os
 from logging.handlers import RotatingFileHandler
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
-LOG_FILE = os.path.join(LOG_DIR, "trading_bot.log")
+LOG_FILE = os.path.join("/tmp", "trading_bot.log") if os.getenv("VERCEL") else os.path.join(LOG_DIR, "trading_bot.log")
 
 
 def setup_logging(log_file: str = LOG_FILE, level: int = logging.DEBUG) -> logging.Logger:
