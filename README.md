@@ -71,6 +71,18 @@ python app.py
 Then open http://127.0.0.1:5000 in your browser. The web interface uses the
 same local `.env` credentials and Binance Futures Testnet as the CLI.
 
+### Deploy on Render
+
+Create a Render Web Service from this repository. Render will use the included
+`render.yaml` blueprint and start the app with Gunicorn. Add these environment
+variables in the Render dashboard, without committing them to Git:
+
+```text
+BINANCE_API_KEY
+BINANCE_API_SECRET
+FLASK_SECRET_KEY
+```
+
 **Check your connection/API keys first:**
 
 ```bash
