@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 from bot.client import BinanceAPIError, BinanceNetworkError, FuturesTestnetClient
 from bot.logging_config import setup_logging
 from bot.orders import place_order
-from bot.validators import ValidationError
+from bot.validators import ValidationError, validate_order_params
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -60,14 +60,9 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    try:
-        client = FuturesTestnetClient(api_key, api_secret)
-    except ValueError as exc:
-        print(f"❌ Configuration error: {exc}")
-        sys.exit(1)
-
     if args.check_connection:
         try:
+            client = FuturesTestnetClient(api_key, api_secret)
             client.ping()
             account = client.get_account()
             print("✅ Connected to Binance Futures Testnet.")
@@ -83,6 +78,24 @@ def main():
                if val is None]
     if missing:
         parser.error(f"Missing required arguments: {', '.join(missing)}")
+
+    try:
+        validate_order_params(
+            symbol=args.symbol,
+            side=args.side,
+            order_type=args.order_type,
+            quantity=args.quantity,
+            price=args.price,
+            stop_price=args.stop_price,
+        )
+    except ValidationError as exc:
+        parser.error(str(exc))
+
+    try:
+        client = FuturesTestnetClient(api_key, api_secret)
+    except ValueError as exc:
+        print(f"❌ Configuration error: {exc}")
+        sys.exit(1)
 
     try:
         place_order(
