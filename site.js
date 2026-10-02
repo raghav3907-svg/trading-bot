@@ -93,15 +93,16 @@ if (chart) {
     let graphic = `<defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d95d39" stop-opacity=".2"/><stop offset="1" stop-color="#d95d39" stop-opacity="0"/></linearGradient></defs>${grid}${axes}<polygon class="chart-area" points="${points} 878,315 22,315"/><polyline class="chart-line" points="${points}"/>`;
     if (chartType.value === 'candle') {
       const candles = values.map((value, index) => {
-        const open = value - (index % 3 === 0 ? 5 : -4);
-        const close = value;
-        const high = Math.max(open, close) + 7 + (index % 4);
-        const low = Math.min(open, close) - 6 - (index % 3);
+        const open = value + ((index * 13) % 15) - 7;
+        const close = value + ((index * 7) % 13) - 6;
+        const high = Math.max(open, close) + 5 + ((index * 11) % 12);
+        const low = Math.min(open, close) - 4 - ((index * 5) % 10);
         const color = close >= open ? 'candle-up' : 'candle-down';
-        const x = xFor(index) - 6;
+        const width = 7 + ((index * 3) % 7);
+        const x = xFor(index) - width / 2;
         const bodyY = yFor(Math.max(open, close));
         const bodyHeight = Math.max(5, Math.abs(close - open) * 2.05);
-        return `<line class="${color}" x1="${x + 6}" y1="${yFor(high)}" x2="${x + 6}" y2="${yFor(low)}"/><rect class="${color}" x="${x}" y="${bodyY}" width="12" height="${bodyHeight}" rx="1"/>`;
+        return `<line class="${color}" x1="${x + width / 2}" y1="${yFor(high)}" x2="${x + width / 2}" y2="${yFor(low)}"/><rect class="${color}" x="${x}" y="${bodyY}" width="${width}" height="${bodyHeight}" rx="1"/>`;
       }).join('');
       const volume = values.map((value, index) => `<rect class="volume-bar ${index % 2 ? 'bar-down' : 'bar-up'}" x="${xFor(index) - 5}" y="${315 - (value % 23) * 1.8}" width="10" height="${(value % 23) * 1.8}" rx="1"/>`).join('');
       graphic = `${grid}${axes}<g class="candles">${candles}</g><g class="volume-bars">${volume}</g>`;
