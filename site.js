@@ -63,9 +63,19 @@ if (chart) {
   const marketSelect = document.getElementById('market-select');
   const currencySelect = document.getElementById('currency-select');
   const chartType = document.getElementById('chart-type');
+  const chartTooltip = document.getElementById('chart-tooltip');
   const currencyRates = { USD: 1, INR: 83.2, EUR: .92 };
+  const expandSeries = (seed) => Array.from({ length: 30 }, (_, index) => {
+    const position = index / 29 * (seed.length - 1);
+    const lower = Math.floor(position);
+    const upper = Math.min(seed.length - 1, lower + 1);
+    const blend = position - lower;
+    const drift = ((index * 17) % 7) - 3;
+    return seed[lower] + (seed[upper] - seed[lower]) * blend + drift;
+  });
   const drawChart = () => {
     const asset = marketData[marketSelect.value];
+    const values = expandSeries(asset.values);
     const rate = currencyRates[currencySelect.value];
     const suffix = currencySelect.value === 'USD' ? '$' : currencySelect.value === 'INR' ? '₹' : '€';
     const rawPrice = Number(asset.price.replace(/[$,]/g, '')) * rate;
@@ -73,28 +83,41 @@ if (chart) {
     category.textContent = asset.category;
     price.textContent = `${suffix}${rawPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
     change.textContent = `${asset.change} this month`;
-    const points = asset.values.map((value, index) => `${index * 100},${300 - value * 2.5}`).join(' ');
-    const grid = '<path class="chart-grid" d="M0 75H900M0 150H900M0 225H900M0 300H900"/>';
-    let graphic = `<defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d95d39" stop-opacity=".22"/><stop offset="1" stop-color="#d95d39" stop-opacity="0"/></linearGradient></defs>${grid}<polygon class="chart-area" points="${points} 900,330 0,330"/><polyline class="chart-line" points="${points}"/>`;
+    const xFor = (index) => 22 + index * (856 / (values.length - 1));
+    const yFor = (value) => 245 - value * 2.05;
+    const points = values.map((value, index) => `${xFor(index)},${yFor(value)}`).join(' ');
+    const grid = '<path class="chart-grid" d="M0 40H900M0 95H900M0 150H900M0 205H900M0 260H900M0 315H900M22 20V315M236 20V315M450 20V315M664 20V315M878 20V315"/>';
+    const axes = '<text class="chart-axis" x="8" y="44">100</text><text class="chart-axis" x="8" y="154">50</text><text class="chart-axis" x="8" y="264">0</text><text class="chart-axis" x="810" y="345">VOLUME</text>';
+    let graphic = `<defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d95d39" stop-opacity=".2"/><stop offset="1" stop-color="#d95d39" stop-opacity="0"/></linearGradient></defs>${grid}${axes}<polygon class="chart-area" points="${points} 878,315 22,315"/><polyline class="chart-line" points="${points}"/>`;
     if (chartType.value === 'candle') {
-      const candles = asset.values.map((value, index) => {
+      const candles = values.map((value, index) => {
         const open = value - (index % 3 === 0 ? 5 : -4);
         const close = value;
-        const high = Math.max(open, close) + 10;
-        const low = Math.min(open, close) - 8;
+        const high = Math.max(open, close) + 7 + (index % 4);
+        const low = Math.min(open, close) - 6 - (index % 3);
         const color = close >= open ? 'candle-up' : 'candle-down';
-        const x = index * 100 + 43;
-        const bodyY = 300 - Math.max(open, close) * 2.5;
-        const bodyHeight = Math.max(8, Math.abs(close - open) * 2.5);
-        return `<line class="${color}" x1="${x + 7}" y1="${300 - high * 2.5}" x2="${x + 7}" y2="${300 - low * 2.5}"/><rect class="${color}" x="${x}" y="${bodyY}" width="14" height="${bodyHeight}"/>`;
+        const x = xFor(index) - 6;
+        const bodyY = yFor(Math.max(open, close));
+        const bodyHeight = Math.max(5, Math.abs(close - open) * 2.05);
+        return `<line class="${color}" x1="${x + 6}" y1="${yFor(high)}" x2="${x + 6}" y2="${yFor(low)}"/><rect class="${color}" x="${x}" y="${bodyY}" width="12" height="${bodyHeight}" rx="1"/>`;
       }).join('');
-      graphic = `${grid}<g class="candles">${candles}</g>`;
+      const volume = values.map((value, index) => `<rect class="volume-bar ${index % 2 ? 'bar-down' : 'bar-up'}" x="${xFor(index) - 5}" y="${315 - (value % 23) * 1.8}" width="10" height="${(value % 23) * 1.8}" rx="1"/>`).join('');
+      graphic = `${grid}${axes}<g class="candles">${candles}</g><g class="volume-bars">${volume}</g>`;
     }
     if (chartType.value === 'bars') {
-      const bars = asset.values.map((value, index) => `<rect class="volume-bar" x="${index * 100 + 25}" y="${330 - value * 2.2}" width="50" height="${value * 2.2}" rx="2"/>`).join('');
-      graphic = `${grid}<g class="volume-bars">${bars}</g>`;
+      const bars = values.map((value, index) => `<rect class="volume-bar ${index % 2 ? 'bar-down' : 'bar-up'}" x="${xFor(index) - 9}" y="${315 - value * 2.4}" width="18" height="${value * 2.4}" rx="2"/>`).join('');
+      graphic = `${grid}${axes}<g class="volume-bars">${bars}</g>`;
     }
     chart.innerHTML = graphic;
+    chart.onpointermove = (event) => {
+      if (!chartTooltip) return;
+      const bounds = chart.getBoundingClientRect();
+      const index = Math.max(0, Math.min(values.length - 1, Math.round((event.clientX - bounds.left) / bounds.width * (values.length - 1))));
+      chartTooltip.textContent = `O ${Math.round(values[index] - 4)}  H ${Math.round(values[index] + 8)}  L ${Math.round(values[index] - 9)}  C ${Math.round(values[index])}`;
+      chartTooltip.style.left = `${Math.min(78, Math.max(2, (index / (values.length - 1)) * 86))}%`;
+      chartTooltip.classList.add('is-visible');
+    };
+    chart.onpointerleave = () => chartTooltip && chartTooltip.classList.remove('is-visible');
   };
   marketSelect.addEventListener('change', drawChart);
   currencySelect.addEventListener('change', drawChart);
