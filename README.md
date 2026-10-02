@@ -1,21 +1,17 @@
-# Trading Bot — Binance Futures Testnet (USDT-M)
-
 # Trading Bot Dashboard
 
-A simplified CLI trading bot that places Market, Limit, and Stop-Limit
-orders on Binance Futures Testnet, with structured code, input
-validation, and logging.
+A small Flask dashboard and command-line client for placing Market, Limit,
+and Stop-Limit orders on Binance Futures Testnet (USDT-M). The application
+keeps API signing, validation, order placement, and presentation separate so
+the same trading logic is available from the browser and the terminal.
 
 ## Features
 
-- **Order types:** MARKET, LIMIT, and STOP_LIMIT (bonus)
-- **Both sides:** BUY and SELL
+- **Order types:** MARKET, LIMIT, and STOP_LIMIT
+- **Trading sides:** BUY and SELL
 - **CLI input** via `argparse`, with validation before any API call
-- **Structured layout:** separate API client layer (`bot/client.py`)
-  and CLI/command layer (`cli.py`)
-- **Logging:** every request, response, and error is logged to
-  `logs/trading_bot.log` (rotating file handler) and summarized on
-  the console
+- **Dashboard:** account balance, positions, open orders, and connection checks
+- **Logging:** rotating request, response, and error logs with secrets masked
 
 ## Project Structure
 
@@ -28,28 +24,31 @@ trading_bot/
 │   ├── validators.py      # input validation
 │   └── logging_config.py  # logging setup
 ├── cli.py                 # CLI entry point
+├── app.py                 # Flask web application
+├── api/index.py           # Vercel entry point
+├── templates/index.html   # Dashboard markup
+├── static/style.css       # Dashboard styles
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
-└── logs/                  # log output (created automatically)
+└── logs/                  # Generated locally and ignored by Git
 ```
 
 ## Setup
 
-1. **Clone the repo and install dependencies:**
+1. **Clone the repository and install dependencies:**
 
    ```bash
-   git clone <your-repo-url>
+  git clone https://github.com/raghav3907-svg/trading-bot.git
    cd trading_bot
    python -m venv venv
    source venv/bin/activate   # Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
 
-2. **Create a Binance Futures Testnet account:**
-   - Go to https://testnet.binancefuture.com
-   - Log in with GitHub
-   - Generate an HMAC_SHA256 API key + secret
+2. **Create Binance Futures Testnet credentials:**
+  - Open https://testnet.binancefuture.com
+  - Generate an HMAC-SHA256 API key and secret
 
 3. **Configure credentials:**
 
@@ -60,7 +59,10 @@ trading_bot/
 
    `.env` is git-ignored — never commit real API keys.
 
-## How to Run
+  This project is for Binance Futures Testnet. Do not use production
+  credentials or production endpoints without a deliberate security review.
+
+## Usage
 
 ### Web interface
 
@@ -91,37 +93,23 @@ This repository also includes a Vercel Python entry point. Import the GitHub
 repository into Vercel, then add `BINANCE_API_KEY`, `BINANCE_API_SECRET`, and
 `FLASK_SECRET_KEY` under Project Settings -> Environment Variables.
 
-**Check your connection/API keys first:**
+### CLI
+
+Check the connection:
 
 ```bash
 python cli.py --check-connection
 ```
 
-**Place a Market order:**
+Place orders with the commands shown below. Input is validated before any API
+call, and detailed events are written to the rotating log file.
 
 ```bash
 python cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.01
-```
-
-**Place a Limit order:**
-
-```bash
 python cli.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.01 --price 60000
-```
-
-**Place a Stop-Limit order (bonus order type):**
-
-```bash
 python cli.py --symbol BTCUSDT --side BUY --type STOP_LIMIT \
   --quantity 0.01 --price 61000 --stop-price 60800
 ```
-
-Each run prints:
-- an order request summary
-- the order response (orderId, status, executedQty, avgPrice)
-- a clear success/failure message
-
-Full request/response/error details are written to `logs/trading_bot.log`.
 
 ## Assumptions
 
@@ -135,9 +123,14 @@ Full request/response/error details are written to `logs/trading_bot.log`.
   (before any network call), Binance API errors (non-200 responses),
   and network errors (timeouts/connection failures).
 
-## Testing Notes
+## Validation
 
-To generate the two required log files (one MARKET, one LIMIT order),
-run the two example commands above against your funded testnet
-account, then include the resulting `logs/trading_bot.log` (or copies
-of the relevant lines) in your submission.
+Run these lightweight local checks before publishing changes:
+
+```bash
+python -m compileall -q app.py api bot cli.py
+python -c "from bot.validators import validate_order_params; print(validate_order_params('BTCUSDT', 'BUY', 'MARKET', 0.01))"
+```
+
+Live order commands require valid Binance Futures Testnet credentials and can
+change the testnet account state.
