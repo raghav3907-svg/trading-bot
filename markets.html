@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Market charts for crypto and Indian indices.">
+  <title>Trading Bot | Markets</title>
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Trading Bot dashboard"><span class="brand-mark">TB</span><span>Trading Bot</span></a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="index.html">Dashboard</a><a class="active" href="markets.html">Markets</a><a href="index.html#orders">Orders</a><a href="setup.html">Setup</a>
+      </nav>
+      <button class="menu-button" id="menu-button" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    </header>
+    <main>
+      <section class="page-hero"><p class="eyebrow">MARKET OBSERVER</p><h1>Find the<br><em>signal.</em></h1><p class="hero-copy">Switch between crypto markets and Indian indices, then compare their movement across the month.</p></section>
+      <section class="market-toolbar" aria-label="Chart controls">
+        <label>Market<select id="market-select"><option value="BTCUSDT">BTC / USDT</option><option value="ETHUSDT">ETH / USDT</option><option value="SOLUSDT">SOL / USDT</option><option value="SENSEX">SENSEX</option><option value="NIFTY50">NIFTY 50</option></select></label>
+        <label>Currency<select id="currency-select"><option value="USD">USD</option><option value="INR">INR</option><option value="EUR">EUR</option></select></label>
+        <div class="period-tabs" role="tablist" aria-label="Chart period"><button class="period-tab active" data-period="1M" role="tab">1M</button><button class="period-tab" data-period="3M" role="tab">3M</button><button class="period-tab" data-period="1Y" role="tab">1Y</button></div>
+      </section>
+      <section class="chart-panel">
+        <div class="chart-heading"><div><p class="eyebrow" id="chart-category">CRYPTO / TESTNET DATA</p><h2 id="chart-title">BTC / USDT</h2></div><div class="chart-quote"><strong id="chart-price">$60,840.00</strong><span class="gain" id="chart-change">+4.82% this month</span></div></div>
+        <div class="chart-wrap"><svg id="market-chart" viewBox="0 0 900 330" role="img" aria-label="Market price chart"></svg><div class="chart-labels"><span>01</span><span>08</span><span>15</span><span>22</span><span>30</span></div></div>
+      </section>
+      <section class="market-cards"><article class="market-card"><span>Market breadth</span><strong class="gain">62% positive</strong><small>Across tracked assets</small></article><article class="market-card"><span>Best performer</span><strong id="best-performer">BTCUSDT</strong><small id="best-change">+4.82% this month</small></article><article class="market-card"><span>Data mode</span><strong>Preview</strong><small>Connect backend for live prices</small></article></section>
+      <section class="index-strip"><div><p class="eyebrow">INDIAN INDICES</p><h2>Local markets, same view.</h2></div><div class="index-values"><div><span>SENSEX</span><strong>81,224.75</strong><b class="gain">+0.64%</b></div><div><span>NIFTY 50</span><strong>24,836.10</strong><b class="gain">+0.71%</b></div></div></section>
+    </main>
+    <footer class="site-footer"><span>Trading Bot / Market observer</span><span>Preview data for interface exploration</span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="site.js"></script>
+</body>
+</html>
