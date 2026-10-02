@@ -5,6 +5,11 @@ and Stop-Limit orders on Binance Futures Testnet (USDT-M). The application
 keeps API signing, validation, order placement, and presentation separate so
 the same trading logic is available from the browser and the terminal.
 
+The repository root also contains a static HTML/CSS/JavaScript preview for
+GitHub Pages. It is safe to host publicly, but it is demo-only: live Binance
+requests require the Python Flask backend and server-side environment
+variables.
+
 ## Features
 
 - **Order types:** MARKET, LIMIT, and STOP_LIMIT

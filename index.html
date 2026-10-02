@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A focused Binance Futures Testnet trading dashboard.">
+  <title>Trading Bot | Testnet Order Desk</title>
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Trading Bot home">
+        <span class="brand-mark">TB</span>
+        <span>Trading Bot</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a class="active" href="#dashboard">Dashboard</a>
+        <a href="#orders">Orders</a>
+        <a href="#about">About</a>
+        <a class="github-link" href="https://github.com/raghav3907-svg/trading-bot" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+      <button class="menu-button" id="menu-button" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    </header>
+
+    <main>
+      <section class="hero" id="dashboard">
+        <div>
+          <p class="eyebrow">BINANCE FUTURES / TESTNET</p>
+          <h1>Make every order<br><em>deliberate.</em></h1>
+          <p class="hero-copy">A calm control surface for checking your account, reviewing exposure, and preparing testnet orders.</p>
+        </div>
+        <div class="hero-note">
+          <span class="status-dot"></span>
+          <div><strong>Demo workspace</strong><span>Live keys stay on the backend</span></div>
+        </div>
+      </section>
+
+      <section class="notice" aria-label="Demo mode notice">
+        <span class="notice-icon">i</span>
+        <p>This GitHub Pages preview is static. Connect the Python Flask app on Render to use live Binance Futures Testnet data and place orders.</p>
+        <a href="https://github.com/raghav3907-svg/trading-bot#deployment" target="_blank" rel="noreferrer">Deployment guide <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section class="metrics" aria-label="Demo account overview">
+        <article class="metric-card"><span>Wallet balance</span><strong>$10,000.00</strong><small>USDT <b>+0.00%</b></small></article>
+        <article class="metric-card"><span>Available balance</span><strong>$9,842.50</strong><small>USDT <b>Ready to trade</b></small></article>
+        <article class="metric-card"><span>Unrealized PnL</span><strong class="gain">+$42.18</strong><small>USDT <b>Today</b></small></article>
+        <article class="metric-card metric-accent"><span>Environment</span><strong>TESTNET</strong><small><b>Safe sandbox</b></small></article>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel activity-panel">
+          <div class="panel-header">
+            <div><p class="eyebrow">EXPOSURE</p><h2>Open positions</h2></div>
+            <span class="count">2</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Symbol</th><th>Side</th><th>Size</th><th>Entry</th><th>PnL</th></tr></thead>
+              <tbody>
+                <tr><td><strong>BTCUSDT</strong><small>Perpetual</small></td><td><span class="pill buy">LONG</span></td><td>0.010</td><td>60,420.00</td><td class="gain">+$31.20</td></tr>
+                <tr><td><strong>ETHUSDT</strong><small>Perpetual</small></td><td><span class="pill sell">SHORT</span></td><td>0.100</td><td>3,240.50</td><td class="loss">-$8.42</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-footer"><span>Updated just now</span><button class="text-button" id="refresh-button" type="button">Refresh data <span aria-hidden="true">↻</span></button></div>
+        </div>
+
+        <div class="panel activity-panel">
+          <div class="panel-header">
+            <div><p class="eyebrow">ORDERS</p><h2>Open orders</h2></div>
+            <span class="count">3</span>
+          </div>
+          <div class="order-list">
+            <div class="order-row"><span class="order-symbol">BTCUSDT <small>LIMIT</small></span><span class="pill buy">BUY</span><strong>59,800.00</strong></div>
+            <div class="order-row"><span class="order-symbol">ETHUSDT <small>STOP</small></span><span class="pill sell">SELL</span><strong>3,320.00</strong></div>
+            <div class="order-row"><span class="order-symbol">SOLUSDT <small>LIMIT</small></span><span class="pill buy">BUY</span><strong>142.50</strong></div>
+          </div>
+          <div class="panel-footer"><span>3 pending orders</span><a class="text-button" href="#orders">View order desk <span aria-hidden="true">→</span></a></div>
+        </div>
+      </section>
+
+      <section class="order-section" id="orders">
+        <div class="section-heading"><div><p class="eyebrow">NEW ORDER</p><h2>Prepare a testnet order</h2></div><span class="mode-label">USDT-M / DEMO</span></div>
+        <form id="order-form" class="order-form">
+          <label>Symbol<input name="symbol" value="BTCUSDT" required pattern="[A-Za-z0-9]{5,20}"></label>
+          <label>Side<select name="side"><option>BUY</option><option>SELL</option></select></label>
+          <label>Type<select name="type" id="order-type"><option>MARKET</option><option>LIMIT</option><option>STOP_LIMIT</option></select></label>
+          <label>Quantity<input name="quantity" type="number" value="0.01" min="0" step="any" required></label>
+          <label class="conditional" id="price-label">Price<input name="price" type="number" min="0" step="any" placeholder="60000"></label>
+          <button class="primary-button" type="submit">Review order <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="form-caption">Review only. This static preview never sends an order or stores credentials.</p>
+      </section>
+
+      <section class="about-section" id="about">
+        <p class="eyebrow">BUILT FOR CLARITY</p>
+        <h2>One interface.<br><em>Two ways to trade.</em></h2>
+        <p>The repository includes this static GitHub Pages preview and a Python Flask backend for live testnet execution. Use the preview to explore the interface, then deploy the backend with your environment variables.</p>
+        <a class="outline-button" href="https://github.com/raghav3907-svg/trading-bot#setup" target="_blank" rel="noreferrer">Read the setup guide <span aria-hidden="true">↗</span></a>
+      </section>
+    </main>
+    <footer class="site-footer"><span>Trading Bot / Binance Futures Testnet</span><span>Built with HTML, CSS, JavaScript &amp; Python</span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="site.js"></script>
+</body>
+</html>
