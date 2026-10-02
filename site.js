@@ -57,6 +57,7 @@ if (chart) {
     NIFTY50: { title: 'NIFTY 50', category: 'INDIA / INDEX DATA', price: '24,836.10', change: '+0.71%', values: [55, 60, 57, 65, 63, 72, 68, 77, 75, 88] }
   };
   const title = document.getElementById('chart-title');
+  const toolbarSymbol = document.getElementById('toolbar-symbol');
   const category = document.getElementById('chart-category');
   const price = document.getElementById('chart-price');
   const change = document.getElementById('chart-change');
@@ -80,6 +81,7 @@ if (chart) {
     const suffix = currencySelect.value === 'USD' ? '$' : currencySelect.value === 'INR' ? '₹' : '€';
     const rawPrice = Number(asset.price.replace(/[$,]/g, '')) * rate;
     title.textContent = asset.title;
+    toolbarSymbol.textContent = asset.title;
     category.textContent = asset.category;
     price.textContent = `${suffix}${rawPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
     change.textContent = `${asset.change} this month`;
@@ -127,6 +129,11 @@ if (chart) {
     tab.classList.add('active');
     drawChart();
     showToast(`${tab.dataset.period} chart view selected.`);
+  }));
+  document.querySelectorAll('.toolbar-button').forEach((button) => button.addEventListener('click', () => {
+    document.querySelectorAll('.toolbar-button').forEach((item) => item.classList.remove('active'));
+    button.classList.add('active');
+    showToast(`${button.textContent} chart tool selected.`);
   }));
   drawChart();
 }
