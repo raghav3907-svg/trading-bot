@@ -62,6 +62,7 @@ if (chart) {
   const change = document.getElementById('chart-change');
   const marketSelect = document.getElementById('market-select');
   const currencySelect = document.getElementById('currency-select');
+  const chartType = document.getElementById('chart-type');
   const currencyRates = { USD: 1, INR: 83.2, EUR: .92 };
   const drawChart = () => {
     const asset = marketData[marketSelect.value];
@@ -73,13 +74,35 @@ if (chart) {
     price.textContent = `${suffix}${rawPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
     change.textContent = `${asset.change} this month`;
     const points = asset.values.map((value, index) => `${index * 100},${300 - value * 2.5}`).join(' ');
-    chart.innerHTML = `<defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d95d39" stop-opacity=".22"/><stop offset="1" stop-color="#d95d39" stop-opacity="0"/></linearGradient></defs><path class="chart-grid" d="M0 75H900M0 150H900M0 225H900M0 300H900"/><polygon class="chart-area" points="${points} 900,330 0,330"/><polyline class="chart-line" points="${points}"/>`;
+    const grid = '<path class="chart-grid" d="M0 75H900M0 150H900M0 225H900M0 300H900"/>';
+    let graphic = `<defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d95d39" stop-opacity=".22"/><stop offset="1" stop-color="#d95d39" stop-opacity="0"/></linearGradient></defs>${grid}<polygon class="chart-area" points="${points} 900,330 0,330"/><polyline class="chart-line" points="${points}"/>`;
+    if (chartType.value === 'candle') {
+      const candles = asset.values.map((value, index) => {
+        const open = value - (index % 3 === 0 ? 5 : -4);
+        const close = value;
+        const high = Math.max(open, close) + 10;
+        const low = Math.min(open, close) - 8;
+        const color = close >= open ? 'candle-up' : 'candle-down';
+        const x = index * 100 + 43;
+        const bodyY = 300 - Math.max(open, close) * 2.5;
+        const bodyHeight = Math.max(8, Math.abs(close - open) * 2.5);
+        return `<line class="${color}" x1="${x + 7}" y1="${300 - high * 2.5}" x2="${x + 7}" y2="${300 - low * 2.5}"/><rect class="${color}" x="${x}" y="${bodyY}" width="14" height="${bodyHeight}"/>`;
+      }).join('');
+      graphic = `${grid}<g class="candles">${candles}</g>`;
+    }
+    if (chartType.value === 'bars') {
+      const bars = asset.values.map((value, index) => `<rect class="volume-bar" x="${index * 100 + 25}" y="${330 - value * 2.2}" width="50" height="${value * 2.2}" rx="2"/>`).join('');
+      graphic = `${grid}<g class="volume-bars">${bars}</g>`;
+    }
+    chart.innerHTML = graphic;
   };
   marketSelect.addEventListener('change', drawChart);
   currencySelect.addEventListener('change', drawChart);
+  chartType.addEventListener('change', drawChart);
   document.querySelectorAll('.period-tab').forEach((tab) => tab.addEventListener('click', () => {
     document.querySelectorAll('.period-tab').forEach((item) => item.classList.remove('active'));
     tab.classList.add('active');
+    drawChart();
     showToast(`${tab.dataset.period} chart view selected.`);
   }));
   drawChart();
